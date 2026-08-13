@@ -6,6 +6,16 @@
 
 [![dsh-plugin](https://img.shields.io/badge/dsh--plugin-%E2%9C%93-5B4CF0?style=flat-square)](https://github.com/topics/dsh-plugin)
 
+## 演示
+
+![完整操作流程](assets/demo-flow.gif)
+
+*拖入图片、PPT、TXT、ZIP → 附件栏出现文件方块(与图片缩略图并排)→ 点击发送 → 模型收到工作区文件路径*
+
+![效果,以及它解决的问题](assets/demo-combined.png)
+
+*上:路径成功送达模型;下:DSH 原生拦截提示「当前模型不支持图片,请切换支持图片的模型」*
+
 ## 为什么做这个
 
 我在 DeepSeek Harness 里用纯文本模型(deepseek)写代码,需要经常把截图发给 Agent 看。但 DSH 的图片附件走模型原生附件通道,纯文本模型会在发送前被预检拦下,输入框直接弹出系统提示:

@@ -6,6 +6,16 @@
 
 [![dsh-plugin](https://img.shields.io/badge/dsh--plugin-%E2%9C%93-5B4CF0?style=flat-square)](https://github.com/topics/dsh-plugin)
 
+## Demo
+
+![Full workflow](assets/demo-flow.gif)
+
+*Drag images / PPT / TXT / ZIP into the composer → square file chips appear next to image thumbnails → hit send → the model receives workspace file paths.*
+
+![Effect, and the problem it solves](assets/demo-combined.png)
+
+*Top: the paths are delivered to the model. Bottom: DSH's native rejection — "The current model does not support images; switch to a model that does."*
+
 ## Why this plugin
 
 I use a text-only model (deepseek) in DeepSeek Harness and frequently need to send screenshots to the agent. But DSH image attachments go through the model's native attachment channel, and text-only models are rejected by a preflight check before the message is even sent — the composer shows a system toast:
