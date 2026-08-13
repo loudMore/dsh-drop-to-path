@@ -24,19 +24,36 @@ Model "deepseek-v4-flash" does not support image input.
 
 ## 工作原理
 
-```
-粘贴/拖入图片 → 附件卡片(原生:缩略图/预览/叉掉)
-      ↓ 点击发送
-conversation.sendSession 被包装:
-   逐张上传 → <workspace>/.drops/<timestamp>-<name>.png
-   消息内容 → [{ type: 'text', text: '<路径>\n<你的文字>' }]
-      ↓
-纯文本模型收到文件地址 → agent 调 vision 工具看图
+```mermaid
+flowchart LR
+    A["粘贴 / 拖入"] --> B{"文件类型?"}
+    B -->|"图片<br/>png / jpg / webp / gif"| C["原生附件卡片<br/>预览 / 移除"]
+    C --> D["点击发送"]
+    D --> E["上传 → workspace/.drops/"]
+    E --> F["消息转为纯文本路径"]
+    F --> G["纯文本模型调 vision 工具看图"]
+    B -->|"其他文件<br/>pdf / docx / xlsx / 视频…"| H["上传 → workspace/.drops/"]
+    H --> I["输入框自动插入路径"]
+    I --> G
 ```
 
 - 图片准入预检(`dsh-host-apiproxy` 的 `attachment-error`)被**绕过**:发送时根本没有 image 块,模型收到的全是文本。
-- 上传失败自动回退到原生发送(会看到熟悉的附件错误提示),不会吞消息。
-- 支持粘贴和拖入,支持多张图片。
+- 上传失败不再静默:会弹出**可见提示**说明原因,然后回退到原生发送(不会吞消息)。
+- 支持粘贴和拖入;多张图片按顺序上传,以一段路径文本发送。
+
+## 支持的文件类型
+
+| 类型 | 扩展名 | 上限 | 体验 |
+|---|---|---|---|
+| 图片 | `png` `jpg` `jpeg` `webp` `gif` | 30MB | 原生附件卡片(预览/移除),发送时自动转路径 |
+| 文档 | `pdf` `doc` `docx` `xls` `xlsx` `ppt` `pptx` `txt` `md` `csv` `json` | 100MB | 拖入/粘贴即上传,输入框插入路径 |
+| 压缩包 | `zip` | 100MB | 同上 |
+| 视频 | `mp4` `mov` `webm` `mkv` `avi` | 100MB | 同上 |
+| 音频 | `mp3` `wav` `flac` `m4a` | 100MB | 同上 |
+
+> 图片保持原生附件体验;非图片文件 DSH 本身不允许作为附件发送,本插件改为"直接转路径"——不需要预览,Agent 拿到路径后可用 PDF/文档解析等工具处理。
+
+![DSH 附件仅支持这些图片格式](assets/formats-demo.png)
 
 ## 与 dsh-vision-toolkit 配合(推荐搭配)
 

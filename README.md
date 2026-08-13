@@ -24,19 +24,36 @@ After experiencing "paste and go" in another tool, I decided to bring that exper
 
 ## How it works
 
-```
-Paste / drop an image → attachment card (native: thumbnail / preview / remove)
-      ↓ hit send
-conversation.sendSession is wrapped:
-   upload each image → <workspace>/.drops/<timestamp>-<name>.png
-   message content → [{ type: 'text', text: '<path>\n<your text>' }]
-      ↓
-text-only model receives file addresses → agent reads them with vision tools
+```mermaid
+flowchart LR
+    A["Paste / drag in"] --> B{"File type?"}
+    B -->|"Images<br/>png / jpg / webp / gif"| C["Native attachment card<br/>preview / remove"]
+    C --> D["Hit send"]
+    D --> E["Upload → workspace/.drops/"]
+    E --> F["Message becomes plain text paths"]
+    F --> G["Text-only model reads them<br/>with vision tools"]
+    B -->|"Other files<br/>pdf / docx / xlsx / video…"| H["Upload → workspace/.drops/"]
+    H --> I["Path inserted into the composer"]
+    I --> G
 ```
 
 - The image admission preflight (`attachment-error` in `dsh-host-apiproxy`) is **bypassed**: no image block is ever sent, the model only sees text.
-- Upload failure falls back to the native send path (you get the familiar attachment error toast) — messages are never swallowed.
-- Supports paste and drag-and-drop, and multiple images per message.
+- Upload failure falls back to the native send path with a **visible notice** (no more silent failures), messages are never swallowed.
+- Supports paste and drag-and-drop; multiple images per message are uploaded in order and sent as one text block of paths.
+
+## Supported file types
+
+| Type | Extensions | Limit | Experience |
+|---|---|---|---|
+| Images | `png` `jpg` `jpeg` `webp` `gif` | 30MB | Native attachment card (preview / remove), auto-converted to paths on send |
+| Documents | `pdf` `doc` `docx` `xls` `xlsx` `ppt` `pptx` `txt` `md` `csv` `json` | 100MB | Dropped / pasted → uploaded, path inserted into the composer |
+| Archives | `zip` | 100MB | Same |
+| Video | `mp4` `mov` `webm` `mkv` `avi` | 100MB | Same |
+| Audio | `mp3` `wav` `flac` `m4a` | 100MB | Same |
+
+> Images keep the native attachment experience. DSH itself only accepts these image formats as attachments (see the toast below) and refuses everything else — this plugin turns the rest into plain workspace paths instead, so the agent can process them with PDF / document tools.
+
+![DSH only accepts these image formats as attachments](assets/formats-demo.png)
 
 ## Pairing with dsh-vision-toolkit (recommended)
 
