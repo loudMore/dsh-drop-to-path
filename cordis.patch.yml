@@ -1,0 +1,4 @@
+# dsh-drop-to-path bundle patch: mounts the plugin into a profile layer stack.
+- insert:
+    - id: drop-to-path
+      name: '@dsh-external/dsh-drop-to-path'
