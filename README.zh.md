@@ -8,10 +8,14 @@
 
 ## 为什么做这个
 
-我在 DeepSeek Harness 里用纯文本模型(deepseek)写代码,需要经常把截图发给 Agent 看。但 DSH 的图片附件走模型原生附件通道,纯文本模型会在发送前被预检拦下:
+我在 DeepSeek Harness 里用纯文本模型(deepseek)写代码,需要经常把截图发给 Agent 看。但 DSH 的图片附件走模型原生附件通道,纯文本模型会在发送前被预检拦下,输入框直接弹出系统提示:
+
+> **当前模型不支持图片,请切换支持图片的模型**
+
+底层是宿主的图片准入预检(`attachment-error`):
 
 ```
-Model "deepseek-v4-flash" does not support image input. (attachment-error)
+Model "deepseek-v4-flash" does not support image input.
 ```
 
 配合 [dsh-vision-toolkit](https://github.com/Anionex/dsh-vision-toolkit) 可以解决"看图"的问题——但它的工具只认**工作区文件路径**,图片必须以路径形式进入消息。于是每次看图都要:截图 → 存到工作区 → 手动把地址写进消息。非常笨重。

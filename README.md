@@ -8,10 +8,14 @@
 
 ## Why this plugin
 
-I use a text-only model (deepseek) in DeepSeek Harness and frequently need to send screenshots to the agent. But DSH image attachments go through the model's native attachment channel, and text-only models are rejected by a preflight check before the message is even sent:
+I use a text-only model (deepseek) in DeepSeek Harness and frequently need to send screenshots to the agent. But DSH image attachments go through the model's native attachment channel, and text-only models are rejected by a preflight check before the message is even sent — the composer shows a system toast:
+
+> **The current model does not support images; switch to a model that does.**
+
+Backed by the host image-admission preflight (`attachment-error`):
 
 ```
-Model "deepseek-v4-flash" does not support image input. (attachment-error)
+Model "deepseek-v4-flash" does not support image input.
 ```
 
 [dsh-vision-toolkit](https://github.com/Anionex/dsh-vision-toolkit) solves the "see the image" half — but its tools only accept **workspace file paths**, so the image must enter the message as a path. Every screenshot became: save to workspace → manually type the path into the message. Painful.
