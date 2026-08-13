@@ -1,122 +1,121 @@
 # dsh-drop-to-path
 
-> 给纯文本模型 Agent 的图片"传送带":附件照常管理(预览/移除),发送时自动把图片转成工作区文件路径交给模型。
->
-> A DeepSeek Harness plugin that keeps the native attachment UI (thumbnail / preview / remove) but sends images to a text-only model as **workspace file paths** — so the agent can read them with vision tools instead of hitting the `attachment-error` model preflight.
+> An image "conveyor belt" for text-only model agents: keep the native attachment UI (thumbnail / preview / remove), and automatically convert images to workspace file paths when you hit send.
+
+[English](README.md) | [中文](README.zh.md)
 
 [![dsh-plugin](https://img.shields.io/badge/dsh--plugin-%E2%9C%93-5B4CF0?style=flat-square)](https://github.com/topics/dsh-plugin)
 
-## 为什么做这个
+## Why this plugin
 
-我在 DeepSeek Harness 里用纯文本模型(deepseek)写代码,需要经常把截图发给 Agent 看。但 DSH 的图片附件走模型原生附件通道,纯文本模型会在发送前被预检拦下:
+I use a text-only model (deepseek) in DeepSeek Harness and frequently need to send screenshots to the agent. But DSH image attachments go through the model's native attachment channel, and text-only models are rejected by a preflight check before the message is even sent:
 
 ```
 Model "deepseek-v4-flash" does not support image input. (attachment-error)
 ```
 
-配合 [dsh-vision-toolkit](https://github.com/Anionex/dsh-vision-toolkit) 可以解决"看图"的问题——但它的工具只认**工作区文件路径**,图片必须以路径形式进入消息。于是每次看图都要:截图 → 存到工作区 → 手动把地址写进消息。非常笨重。
+[dsh-vision-toolkit](https://github.com/Anionex/dsh-vision-toolkit) solves the "see the image" half — but its tools only accept **workspace file paths**, so the image must enter the message as a path. Every screenshot became: save to workspace → manually type the path into the message. Painful.
 
-在另一个工具里体验过"粘贴即用"之后,我决定把这个体验搬回 DSH:**附件 UI 完全保持原生,只在发送瞬间把图片转换成文件路径**。于是有了这个插件。
+After experiencing "paste and go" in another tool, I decided to bring that experience back to DSH: **keep the attachment UI completely native, and convert images to file paths only at the moment of sending**. Hence this plugin.
 
-## 工作原理
+## How it works
 
 ```
-粘贴/拖入图片 → 附件卡片(原生:缩略图/预览/叉掉)
-      ↓ 点击发送
-conversation.sendSession 被包装:
-   逐张上传 → <workspace>/.drops/<timestamp>-<name>.png
-   消息内容 → [{ type: 'text', text: '<路径>\n<你的文字>' }]
+Paste / drop an image → attachment card (native: thumbnail / preview / remove)
+      ↓ hit send
+conversation.sendSession is wrapped:
+   upload each image → <workspace>/.drops/<timestamp>-<name>.png
+   message content → [{ type: 'text', text: '<path>\n<your text>' }]
       ↓
-纯文本模型收到文件地址 → agent 调 vision 工具看图
+text-only model receives file addresses → agent reads them with vision tools
 ```
 
-- 图片准入预检(`dsh-host-apiproxy` 的 `attachment-error`)被**绕过**:发送时根本没有 image 块,模型收到的全是文本。
-- 上传失败自动回退到原生发送(会看到熟悉的附件错误提示),不会吞消息。
-- 支持粘贴和拖入,支持多张图片。
+- The image admission preflight (`attachment-error` in `dsh-host-apiproxy`) is **bypassed**: no image block is ever sent, the model only sees text.
+- Upload failure falls back to the native send path (you get the familiar attachment error toast) — messages are never swallowed.
+- Supports paste and drag-and-drop, and multiple images per message.
 
-## 与 dsh-vision-toolkit 配合(推荐搭配)
+## Pairing with dsh-vision-toolkit (recommended)
 
-> 🎯 **强烈推荐搭配 [dsh-vision-toolkit](https://github.com/Anionex/dsh-vision-toolkit) 一起使用**——它是纯文本模型的眼睛,本插件是传送带:
+> 🎯 **Strongly recommended to pair with [dsh-vision-toolkit](https://github.com/Anionex/dsh-vision-toolkit)** — it is the eyes of a text-only model, this plugin is the conveyor belt:
 >
-> - **本插件**解决"图片怎么变成路径"(发送时自动转换);
-> - **dsh-vision-toolkit** 解决"路径怎么变成视觉能力"(图片问答、长截图 OCR、UI 还原、目标定位、像素对比等 10 个结构化视觉工具,已适配 DSH Credentials / 托管运行时 / Web Settings)。
+> - **This plugin** solves "how an image becomes a path" (automatic conversion on send);
+> - **dsh-vision-toolkit** solves "how a path becomes vision capability" (intent-aware image Q&A, long-screenshot OCR, UI restoration, grounding, pixel diff — 10 structured vision tools, with DSH Credentials / managed runtime / Web Settings).
 >
-> 安装:`dsh plugin --profile web add <dsh-vision-toolkit 路径>`(详见其仓库 README)。两者配合,纯文本模型即可获得接近多模态模型的看图体验。
+> Install: `dsh plugin --profile web add <path-to-dsh-vision-toolkit>` (see its repo README). Together they give a text-only model an experience close to a native multimodal model.
 
-| 场景 | 之前 | 现在 |
+| Scenario | Before | Now |
 |---|---|---|
-| 看图问答 | 截图 → 存工作区 → 手写路径 | 截图 → Ctrl+V → 回车 |
-| 多图对比(pixel diff) | 同上,每个路径手写 | 发两张图即可 |
-| 长截图 OCR / UI 还原 | 同上 | 发图即可 |
+| Image Q&A | screenshot → save to workspace → type path | screenshot → Ctrl+V → Enter |
+| Multi-image diff (pixel diff) | same, type every path | just send two images |
+| Long-screenshot OCR / UI restoration | same | just send the image |
 
-安装后配合 `dsh-vision-toolkit`,纯文本模型就能获得接近多模态模型的体验。
+## Comparison with similar plugins
 
-## 同类插件对比
+- [dsh-drag-and-drop](https://github.com/bill9109/dsh-drag-and-drop): dropping a file inserts its **raw path** into the composer, no file copying. Great for referencing files already in the workspace; images are still sent as attachments (still rejected by text-only models), and paste is not supported.
+- **This plugin**: keeps the native attachment UI (preview / remove), **automatically copies images to the workspace and converts them to paths on send**, supports paste and drag-and-drop. Built specifically for "sending images to a text-only model".
 
-- [dsh-drag-and-drop](https://github.com/bill9109/dsh-drag-and-drop):拖放文件→直接在输入框插入**原始路径**,不复制文件。适合"引用工作区已有文件";图片仍会以附件形式发送(纯文本模型下仍会被拒),且不支持粘贴。
-- **本插件**:保留原生附件 UI(预览/移除),发送时**自动复制到工作区并转换为路径**,支持粘贴与拖入。专为"发图给纯文本模型"设计。
+They are complementary: use dsh-drag-and-drop to reference existing files, use this plugin to send screenshots.
 
-两者互补:引用已有文件用 dsh-drag-and-drop,发截图用本插件。
+## Installation
 
-## 安装
-
-前置:DeepSeek Harness(Web profile),Node.js,`dsh` CLI。
+Requirements: DeepSeek Harness (Web profile), Node.js, `dsh` CLI.
 
 ```sh
-# 方式一:dsh plugin 安装(推荐)
+# Option 1: install via dsh plugin (recommended)
 dsh plugin --profile web add /path/to/dsh-drop-to-path
 
-# 方式二:手动(与本仓库 layout 一致)
-# 1. package.json 的 dependencies 加:
+# Option 2: manual (matches this repo layout)
+# 1. add to dependencies in package.json:
 #    "@dsh-external/dsh-drop-to-path": "link:/path/to/dsh-drop-to-path"
-# 2. dsh.profile.bundles 数组加: "@dsh-external/dsh-drop-to-path"
-# 3. 将目录(含 lib/)复制到 profiles/<name>/node_modules/@dsh-external/dsh-drop-to-path
+# 2. add to dsh.profile.bundles: "@dsh-external/dsh-drop-to-path"
+# 3. copy the directory (including lib/) into profiles/<name>/node_modules/@dsh-external/dsh-drop-to-path
 ```
 
-安装后**重启 Web profile**(双击启动器 / 重启 `dsh web`)生效。无任何设置项。
+**Restart the Web profile** after installing (relaunch the launcher / restart `dsh web`). No settings to configure.
 
-## 使用
+## Usage
 
-1. 像平时一样粘贴或拖入图片,附件卡片照常显示(可预览、可叉掉);
-2. 可输入文字,可多张图片;
-3. 发送 —— 消息里不会出现图片附件,模型收到的是文件路径;
-4. agent(配合 dsh-vision-toolkit)自动用 `vision_glance` / `vision_pixel_diff` 等工具读取图片。
+1. Paste or drop images as usual — the attachment cards behave natively (preview / remove);
+2. You can add text, and multiple images;
+3. Hit send — no image attachment appears in the message; the model receives file paths;
+4. The agent (paired with dsh-vision-toolkit) automatically reads the images with `vision_glance` / `vision_pixel_diff` and friends.
 
-图片保存在 `<workspace>/.drops/` 目录,可定期清理。
+Images are stored under `<workspace>/.drops/`; clean them up whenever you like.
 
-## 文件结构
+## File structure
 
 ```
 dsh-drop-to-path/
-├─ package.json        bundle 声明(dsh.bundle.patch / dsh.client)
-├─ cordis.patch.yml    挂载行(insert drop-to-path)
+├─ package.json        bundle manifest (dsh.bundle.patch / dsh.client)
+├─ cordis.patch.yml    mount row (insert drop-to-path)
 ├─ lib/
-│  ├─ index.js         host:POST /_dsh/drop-to-path/import 路由
-│  └─ client.js        browser:包装 conversation.sendSession
+│  ├─ index.js         host:POST /_dsh/drop-to-path/import route
+│  └─ client.js        browser: wraps conversation.sendSession
 ├─ README.md
-└─ ADAPTING.md         升级适配指南(必读)
+├─ README.zh.md
+└─ ADAPTING.md         upgrade adaptation guide (read before upgrading DSH)
 ```
 
-## 实现要点
+## Implementation notes
 
-- **host 侧**(`lib/index.js`):注册 `webServer` 服务路由 `POST /_dsh/drop-to-path/import`,接收 `{ name, dataBase64 }`,校验(仅 png/jpg/jpeg/webp/gif、≤30MB、文件名清洗防路径穿越),写入会话工作区 `.drops/`,返回 `{ ok, value: { path } }`。
-- **工作区定位**:读取 `$DSH_HOME/storages/workspace.json`(durable workspace registry),取 `updatedAt` 最新的 workspace 路径。
-- **browser 侧**(`lib/client.js`):不拦截任何 DOM 事件;通过 `exports.inject = ['conversation']` 注入会话服务,实例级包装 `conversation.sendSession`——有草稿图片时上传并替换为文本块,否则原样转发。
-- **失败回退**:上传异常 → `console.error` + 走原生 `sendSession`,保证消息不丢。
+- **host side** (`lib/index.js`): registers the `webServer` route `POST /_dsh/drop-to-path/import`, accepts `{ name, dataBase64 }`, validates (png/jpg/jpeg/webp/gif only, ≤30MB, sanitized file names against path traversal), writes into the session workspace `.drops/`, returns `{ ok, value: { path } }`.
+- **Workspace resolution**: reads `$DSH_HOME/storages/workspace.json` (the durable workspace registry) and picks the workspace with the newest `updatedAt`.
+- **browser side** (`lib/client.js`): intercepts no DOM events; injects the `conversation` service via `exports.inject = ['conversation']` and wraps `conversation.sendSession` at instance level — uploads draft images and replaces them with a text block, otherwise forwards verbatim.
+- **Failure fallback**: upload error → `console.error` + native `sendSession`, messages are never lost.
 
-## 兼容性
+## Compatibility
 
-| DSH 版本 | 状态 |
+| DSH version | Status |
 |---|---|
-| 0.1.0-rc.6(本仓库验证环境) | ✅ 可用 |
+| 0.1.0-rc.6 (verified in this repo's environment) | ✅ Works |
 
-本插件依赖 DSH 若干**未公开的内部接口**(服务名、方法签名、存储格式),DSH 升级后可能失效。升级前请先阅读 [`ADAPTING.md`](ADAPTING.md),失效症状与修复步骤都在里面。
+This plugin depends on several **undocumented internal interfaces** of DSH (service names, method signatures, storage formats) and may break after a DSH upgrade. Read [`ADAPTING.md`](ADAPTING.md) before upgrading — it contains the failure symptoms and the fix steps.
 
-## 贡献与适配
+## Contributing & adapting
 
-- 问题/想法:GitHub Issues。
-- DSH 升级后插件失效:对照 [`ADAPTING.md`](ADAPTING.md) 的症状表排查修复,并在适配记录表追加一行。
+- Issues / ideas: GitHub Issues.
+- Plugin broken after a DSH upgrade: follow the symptom table in [`ADAPTING.md`](ADAPTING.md), fix, and append a row to the adaptation log.
 
-## 许可证
+## License
 
 MIT

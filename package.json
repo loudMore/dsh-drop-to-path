@@ -28,6 +28,7 @@
     "cordis.patch.yml",
     "package.json",
     "README.md",
+    "README.zh.md",
     "ADAPTING.md"
   ],
   "license": "MIT"
