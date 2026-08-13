@@ -13,10 +13,14 @@
 | 客户端插件加载格式 `window.__ModuleLoader__.load({ id, factory })` | DSH 客户端运行时(所有 client bundle) | 插件入口 | 插件完全不加载(F12 无 `[drop-to-path]` 日志) |
 | 插件对象 `exports.apply(ctx)`、`exports.inject = ['conversation']` | cordis 客户端 | 生命周期与依赖注入 | apply 未执行 / `ctx.conversation` 为 undefined |
 | `conversation` 服务(root 单例,scope-addressed) | `@deepseek-ai/dsh-client-ui-conversation` | 注入目标 | 注入失败 |
-| `conversation.sendSession(session, text, imageIds, mode)` | 同上 | **包装点**:带图发送入口 | 发送后仍报 `attachment-error` |
+| `conversation.sendSession(session, text, imageIds, mode)`(原型方法) | 同上 | **包装点**:图片+文件发送入口(prototype 级包装,实例重建不失效) | 发送后仍报 `attachment-error` |
 | `conversation.draftImages(imageIds)` | 同上 | 由草稿附件 id 取附件描述符(`{ file }`) | 附件取不到 |
 | `conversation.releaseDraftImages(attachments)` | 同上 | 发送成功后释放附件预览 | 附件残留 |
 | `session.prompt(content, mode)` | 客户端运行时会话对象 | 提交转换后的文本块 | 发送失败 |
+| document 级 `drop` / `paste` 事件(capture 阶段拦截) | 浏览器 DOM | 拦截含非图片文件的拖放/粘贴 | 文件拖入无方块生成 |
+| `window` 级 `dragend` 事件(DSH 监听并重置拖拽蒙版) | DSH 输入区(`dsh-client-ui-conversation`) | 派发合成 `dragend` 关闭全屏蒙版 | 拖入文件后蒙版残留、页面卡住 |
+| 附件栏容器 `[class*="_attachments"]`(类名后缀按构建变化) | DSH 输入区 DOM | 方块标签插入位置 + flex 布局 CSS 覆盖 | 方块出现在错误位置 |
+| 图片缩略图 `img[src^="blob:"]` | DSH 附件栏 DOM | **实时测量**缩略图尺寸,方块 1:1 对齐 | 方块尺寸与图片不一致 |
 
 ### 1.2 宿主侧(`lib/index.js`)
 
@@ -42,6 +46,9 @@
 | 上传报 500 `cannot read workspace registry` | `workspace.json` 格式或路径变化 | 打开 `$DSH_HOME/storages/workspace.json` 目视核对 | 更新 `workspaceRoot()` 解析逻辑;必要时改用 `workspaceRegistry` 服务注入 |
 | 图片保存成功但 agent 说找不到文件 | 工作区定位到了错误的目录(如服务器 cwd) | 看上传返回的 path | 确认 `workspaceRoot()` 返回的是**会话工作区**(与 `dsh-workspace` 记录的 path 一致) |
 | 插件完全无效果且无日志 | client bundle 未被宿主发现 | 重启后页面源码 `window.__DSH_BOOT__.entries` 是否含 `@dsh-external/dsh-drop-to-path` | 核对 `package.json` 的 `dsh.client` 声明、`exports['./client']`、`cordis.patch.yml` 挂载行 |
+| 拖入文件后**全屏蒙版残留**、页面卡住 | `dragend` 派发未生效或 DSH 不再监听 window `dragend` | F12 Console 看 `[drop-to-path]` 日志;DSH 输入区源码里找蒙版重置逻辑 | 更新 `client.js` 的蒙版关闭方式(当前:派发合成 `DragEvent('dragend')`) |
+| 方块标签出现在错误位置/与图片不并排 | 附件栏类名后缀变化(`_attachments`)或 flex CSS 覆盖失效 | F12 检查 `[class*="_attachments"]` 是否存在及其 display | 更新 `findRail()` 选择器与注入的 CSS |
+| 方块尺寸与图片缩略图不一致 | 缩略图选择器 `img[src^="blob:"]` 失效或尺寸测量逻辑变化 | F12 看缩略图是否仍为 blob URL | 更新 `thumbnailSize()` |
 
 ## 3. 验证清单(适配后必跑)
 
