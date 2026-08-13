@@ -12,9 +12,9 @@
 
 *Drag images / PPT / TXT / ZIP into the composer → square file chips appear next to image thumbnails → hit send → the model receives workspace file paths.*
 
-![Effect, and the problem it solves](assets/demo-combined.png)
+![Result](assets/demo-result.png)
 
-*Top: the paths are delivered to the model. Bottom: DSH's native rejection — "The current model does not support images; switch to a model that does."*
+*The effect: images and files arrive at the text-only model as workspace paths, ready for vision / document tools.*
 
 ## Why this plugin
 
