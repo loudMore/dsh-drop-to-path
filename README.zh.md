@@ -12,6 +12,8 @@
 
 > **当前模型不支持图片,请切换支持图片的模型**
 
+![DSH 发送图片附件时的系统报错](assets/attachment-error-toast.png)
+
 底层是宿主的图片准入预检(`attachment-error`):
 
 ```

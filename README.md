@@ -12,6 +12,8 @@ I use a text-only model (deepseek) in DeepSeek Harness and frequently need to se
 
 > **The current model does not support images; switch to a model that does.**
 
+![DSH system toast when sending an image attachment](assets/attachment-error-toast.png)
+
 Backed by the host image-admission preflight (`attachment-error`):
 
 ```
