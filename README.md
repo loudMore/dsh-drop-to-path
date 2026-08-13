@@ -34,9 +34,14 @@ conversation.sendSession 被包装:
 - 上传失败自动回退到原生发送(会看到熟悉的附件错误提示),不会吞消息。
 - 支持粘贴和拖入,支持多张图片。
 
-## 与 dsh-vision-toolkit 配合
+## 与 dsh-vision-toolkit 配合(推荐搭配)
 
-这个插件解决"图片怎么变成路径",[dsh-vision-toolkit](https://github.com/Anionex/dsh-vision-toolkit) 解决"路径怎么变成视觉能力",两者互补:
+> 🎯 **强烈推荐搭配 [dsh-vision-toolkit](https://github.com/Anionex/dsh-vision-toolkit) 一起使用**——它是纯文本模型的眼睛,本插件是传送带:
+>
+> - **本插件**解决"图片怎么变成路径"(发送时自动转换);
+> - **dsh-vision-toolkit** 解决"路径怎么变成视觉能力"(图片问答、长截图 OCR、UI 还原、目标定位、像素对比等 10 个结构化视觉工具,已适配 DSH Credentials / 托管运行时 / Web Settings)。
+>
+> 安装:`dsh plugin --profile web add <dsh-vision-toolkit 路径>`(详见其仓库 README)。两者配合,纯文本模型即可获得接近多模态模型的看图体验。
 
 | 场景 | 之前 | 现在 |
 |---|---|---|
