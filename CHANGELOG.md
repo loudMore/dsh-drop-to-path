@@ -2,6 +2,12 @@
 
 本项目的所有重要变更都会记录在此文件。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/),版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Fixed
+
+- **pnpm 安装告警**:将 `@deepseek-ai/cordis` 声明为可选 peer(`peerDependenciesMeta`),消除 DSH profile 安装( `autoInstallPeers: false` )下的 missing peer 告警——感谢 [@SPYQWER1](https://github.com/SPYQWER1) 的 [PR #4](https://github.com/loudMore/dsh-drop-to-path/pull/4)(见 [issue #3](https://github.com/loudMore/dsh-drop-to-path/issues/3))。
+
 ## [0.1.0] - 2026-08-14
 
 **首个正式版本**:图片与文件直达纯文本模型的完整实现,已通过自动化浏览器验证,并获得首次社区贡献(PR #2)。
