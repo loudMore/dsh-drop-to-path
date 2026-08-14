@@ -1,7 +1,7 @@
 {
   "name": "@dsh-external/dsh-drop-to-path",
-  "description": "Drop or paste images into the DSH composer as workspace file paths instead of model attachments — lets a text-only model agent read them via vision tools.",
-  "version": "0.0.1",
+  "description": "Drop or paste images, PDFs, office docs, zips, videos and audio into the DSH composer as workspace file paths instead of model attachments — lets a text-only model agent read them via vision tools.",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
