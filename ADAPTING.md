@@ -64,6 +64,7 @@
 |---|---|---|---|
 | 1 | 2026-08-14 | 0.1.0-rc.6 | 初版。注:本环境同时给 `dsh-vision-toolkit` v0.1.2 打过 `httpServer` → `webServer` 补丁(其 `lib/web.js` 与 `src/web.ts`);若该插件也失效,检查此补丁是否被覆盖 |
 | 2 | 2026-08-14 | 0.1.0-rc.6 | 合并 PR #2(感谢 @SPYQWER1):`workspaceRoot()` 增加 `~/.dsh` 回退(不再强制 DSH_HOME);导入路由接受可选 `workspace` 字段(仅绝对路径受信任,否则回退注册表扫描);client 通过 `sessions` 服务解析活动会话 cwd 并随上传携带 |
+| 3 | 2026-08-14 | 0.1.0-rc.6 | 合并 PR #4(感谢 @SPYQWER1):`peerDependenciesMeta` 将 `@deepseek-ai/cordis` 标记为 optional peer,消除 DSH profile(`autoInstallPeers: false`)安装时的 missing peer 告警;运行时无变化 |
 
 ## 5. 本机环境备注(调试用)
 
