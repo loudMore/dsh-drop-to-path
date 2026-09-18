@@ -8,6 +8,12 @@
 
 - **pnpm 安装告警**:将 `@deepseek-ai/cordis` 声明为可选 peer(`peerDependenciesMeta`),消除 DSH profile 安装( `autoInstallPeers: false` )下的 missing peer 告警——感谢 [@SPYQWER1](https://github.com/SPYQWER1) 的 [PR #4](https://github.com/loudMore/dsh-drop-to-path/pull/4)(见 [issue #3](https://github.com/loudMore/dsh-drop-to-path/issues/3))。
 
+## [0.1.1] - 2026-09-18
+
+### Fixed
+
+- **带图片/文件发送后输入框不清空或永久卡死**( [#6](https://github.com/loudMore/dsh-drop-to-path/issues/6) / [#7](https://github.com/loudMore/dsh-drop-to-path/issues/7) ):`patchSendSession` 改写发送路径结尾缺少 `return { kind: "success" }`,promise 落空 resolve 成 `undefined`——轻则 composer 因 `outcome.kind !== "success"` 跳过 `commitSend` 导致输入框文本残留,重则 `settleSubmit` 对 `undefined` 读 `.kind` 抛 `TypeError` 使输入框永久卡死。已按 DSH `sendSession` 契约补上成功返回——感谢 [@loney123456](https://github.com/loney123456) 与 [@CodeMasterYi](https://github.com/CodeMasterYi) 的精准定位。
+
 ## [0.1.0] - 2026-08-14
 
 **首个正式版本**:图片与文件直达纯文本模型的完整实现,已通过自动化浏览器验证,并获得首次社区贡献(PR #2)。
